@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer components {
+  .admin-card { @apply rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-800; }
+  .admin-button { @apply inline-flex items-center justify-center rounded-lg bg-[#b8942b] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#94721c]; }
+  .admin-secondary { @apply rounded-lg border border-stone-300 px-3 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50 dark:border-stone-600 dark:text-stone-100 dark:hover:bg-stone-700; }
+}
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body { margin: 0; }
+.hero-image { background-image: url('https://images.unsplash.com/photo-1507692049790-de58290a4334?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGNodXJjaHxlbnwwfHwwfHx8MA%3D%3D'); background-position: center; background-size: cover; }
+.nav-link { border-radius: .5rem; padding: .55rem .7rem; font-size: .875rem; font-weight: 600; color: #44403c; }
+.nav-link:hover { background: #fff7dd; color: #8a6714; }
+.mobile-link { display: block; padding: .55rem .2rem; font-size: .875rem; font-weight: 600; color: #44403c; }
+.eyebrow { font-size: .75rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #a37c19; }
+.section-title { margin-top: .4rem; font-family: var(--font-serif); font-size: clamp(2rem, 4vw, 3rem); line-height: 1.1; }
+.form-input { display: block; width: 100%; box-sizing: border-box; border: 1px solid #d6d3d1; border-radius: .5rem; padding: .65rem .75rem; color: #1c1917; }
+.dark .form-input { border-color: #57534e; background: #292524; color: #f5f5f4; }
+.dark input::placeholder, .dark textarea::placeholder { color: #e7e5e4; opacity: 1; }
+.dark .text-stone-900, .dark .text-stone-800, .dark .text-stone-700 { color: #f5f5f4; }
+.dark .text-stone-600 { color: #e7e5e4; }
+.dark .text-stone-500, .dark .text-stone-400 { color: #d6d3d1; }
+.dark .text-red-700, .dark .text-red-800 { color: #fca5a5; }
+.calendar-nav { display: inline-flex; align-items: center; gap: .2rem; border-radius: .5rem; border: 1px solid #d6d3d1; padding: .45rem .55rem; font-size: .75rem; font-weight: 700; color: #57534e; }
+.calendar-nav:hover { background: #fff7dd; color: #8a6714; }
+.dark .calendar-nav { border-color: #57534e; color: #e7e5e4; }
+.dark .calendar-nav:hover { background: #292524; color: #f2d267; }
