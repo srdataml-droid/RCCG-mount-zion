@@ -67,6 +67,18 @@ the built front end itself. `DEPLOYMENT.md` has the full runbook; what
 remains is creating the Render service, setting the environment variables,
 and working through the post-deploy checklist.
 
+## Who holds admin access
+The single admin account is the church-owned address
+**rccgmountzionwellton@gmail.com**, Supabase Auth UUID
+`81f89d5d-2615-42ab-8696-4582cb786824`. `ADMIN_USER_ID` must equal that
+UUID or every admin route returns 403 "Not authorized".
+
+Access is keyed to the UUID rather than the email precisely so the address
+can change at handover without touching configuration — an administrator can
+update their own email in the Account section and stay signed in. Moved off a
+personal address on 2026-08-03 so the account survives any future handover to
+another volunteer.
+
 ## Known gaps and loose ends
 - **Migrations pending in production.** Several entries below record
   migrations that must be run by hand in the Supabase SQL Editor before the
@@ -84,6 +96,15 @@ and working through the post-deploy checklist.
   `package.json` to shrink installs.
 - **`.env` still holds `OLLAMA_API_KEY`**, left over from the removed
   PastorBot. Harmless but dead — worth deleting from the local file.
+- **A second Supabase Auth user still exists** (`srdataml@gmail.com`). It gets
+  403 on every admin route so it grants nothing, but an account that can
+  authenticate and is not needed is worth deleting.
+- **The admin address may carry a typo** — `rccgmountzionwellton` rather than
+  `wellington`. It is a real, confirmed mailbox, so it works; if the church
+  registers a correctly spelled address the email can be changed again with
+  no code or configuration impact.
+- **The admin password predates this account move** and should be rotated to
+  a passphrase via the Account section.
 - **Church email is blank** in the seed data.
 - **`accentColor` is seeded `'indigo'`** while the site's visual system is
   gold/white/charcoal. Worth checking whether the field is used at all.
