@@ -15,6 +15,9 @@ const supabase: SupabaseClient | null = supabaseUrl && supabaseServiceRoleKey
     })
   : null;
 const givingCategories = ['Tithe', 'Offering', 'Thanksgiving', 'Building Fund', 'Missions', 'Other'] as const;
+// The public address of the deployed site, used for robots.txt and the
+// sitemap. Trailing slashes are stripped so the two can be joined safely.
+const siteUrl = process.env.SITE_URL?.trim().replace(/\/$/, '') || '';
 
 function givingAccountFromBody(body: unknown) {
   const value = body as Record<string, unknown>;
@@ -73,9 +76,30 @@ async function requireAdmin(req: express.Request, res: express.Response, next: e
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  // Hosting providers assign the port through the environment; 3000 is only
+  // the local development fallback.
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
+
+  // Served from here rather than public/ so the absolute URLs follow SITE_URL
+  // without a rebuild. The public site is a single anchor-scroll page, so the
+  // sitemap has exactly one entry; /admin is deliberately excluded.
+  app.get('/robots.txt', (_req, res) => {
+    const lines = ['User-agent: *', 'Allow: /', 'Disallow: /admin'];
+    if (siteUrl) lines.push('', `Sitemap: ${siteUrl}/sitemap.xml`);
+    res.type('text/plain').send(`${lines.join('\n')}\n`);
+  });
+
+  app.get('/sitemap.xml', (_req, res) => {
+    if (!siteUrl) return res.status(404).type('text/plain').send('Sitemap unavailable: SITE_URL is not configured.\n');
+    res.type('application/xml').send(
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+        `  <url><loc>${siteUrl}/</loc><changefreq>weekly</changefreq></url>\n` +
+        '</urlset>\n',
+    );
+  });
 
   // API ROUTES (Always place before Vite middlewares)
 

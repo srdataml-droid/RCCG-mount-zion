@@ -147,9 +147,25 @@ admin email or password).
 Still undecided: who holds the account — a tech volunteer, Pastor Hannah,
 or both.
 
-## 11. Deployment (not yet executed)
+## 11. Deployment (prepared, not yet executed)
 
-- Frontend: Vercel or Netlify (free tier)
-- Backend: Node-capable free host, provider still TBD
-- Env vars (Supabase URL/service key) configured in the host, never
-  committed
+**One Node service, not a split deploy.** Earlier drafts of this spec called
+for a static frontend on Vercel/Netlify plus a separate backend. That does
+not match how the app is built: in production `server.ts` serves `dist/`
+itself alongside the API, so a static host would return 404 for every
+`/api/*` route and break all content and forms.
+
+- Host: Render free tier, one Web Service, build `npm install && npm run
+  build`, start `npm start`
+- All secrets set in the host dashboard; `.env` is git-ignored and never
+  deployed
+- `ADMIN_USER_ID` gates every admin route — unset means a blanket 503
+- `VITE_*` variables are read at build time, so changing one needs a
+  redeploy rather than a restart
+- `SITE_URL` drives `robots.txt`, `sitemap.xml`, and the canonical/og:url
+  tags, and is set to the host's own address until a real domain exists
+- Known trade-off: the free tier sleeps after ~15 minutes idle, so the first
+  visitor after a quiet period waits roughly 50 seconds
+
+Full step-by-step instructions, including the migration checklist and the
+post-deploy verification list, are in `DEPLOYMENT.md`.

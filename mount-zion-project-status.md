@@ -60,10 +60,12 @@ Both are architecturally "safe" additions — they don't touch the database
 or add any backend load.
 
 ## The biggest open item: deployment
-The app is feature-complete for a first launch and builds cleanly, but has
-never been deployed. Frontend host, Node backend host, production env vars,
-and a sitemap with the canonical URL are all still outstanding. See section
-11 of `mount-zion-product-spec-v2.md`.
+The app is feature-complete for a first launch, builds cleanly, and is now
+prepared for deployment — but has never actually been deployed. The decision
+is a single Render free-tier Node service, since the Express server serves
+the built front end itself. `DEPLOYMENT.md` has the full runbook; what
+remains is creating the Render service, setting the environment variables,
+and working through the post-deploy checklist.
 
 ## Known gaps and loose ends
 - **Migrations pending in production.** Several entries below record
@@ -77,8 +79,11 @@ and a sitemap with the canonical URL are all still outstanding. See section
   compile, so `tsc` does not flag them, and reading them gives a misleading
   picture of the admin (no Giving panel, meeting requests only). They should
   be deleted.
-- **Client bundle exceeds 500 kB**, warned on every build since PostHog was
-  added. Code splitting or a deferred analytics load is the fix.
+- **`motion` is an unused dependency.** Nothing in `src/` imports it, so it
+  is already absent from the bundle, but it can be dropped from
+  `package.json` to shrink installs.
+- **`.env` still holds `OLLAMA_API_KEY`**, left over from the removed
+  PastorBot. Harmless but dead — worth deleting from the local file.
 - **Church email is blank** in the seed data.
 - **`accentColor` is seeded `'indigo'`** while the site's visual system is
   gold/white/charcoal. Worth checking whether the field is used at all.
@@ -88,9 +93,23 @@ and a sitemap with the canonical URL are all still outstanding. See section
 2. Enter the real giving account details and church email via admin
 3. Confirm the real department list with the church
 4. Delete the three orphaned admin files
-5. Deploy: choose hosts, wire env vars, add the sitemap, split the bundle
+5. Deploy — follow `DEPLOYMENT.md`
 
 ## Recent changes
+
+- 2026-08-03: Deployment preparation. Fixed the hardcoded port in `server.ts`,
+  which would have broken the deploy on any host that assigns one. Split the
+  admin panel into a lazily-loaded chunk and made PostHog a dynamic import,
+  cutting the public bundle from 465 kB to 233 kB (148 kB to 71 kB gzipped)
+  and clearing the 500 kB build warning. Added `SITE_URL`, which now drives
+  runtime `robots.txt` and `sitemap.xml` routes plus build-time canonical and
+  `og:url` tags; `robots.txt` disallows `/admin`. Added the missing
+  `ADMIN_USER_ID` to `.env.example` and removed the unused AI Studio
+  `APP_URL`. Pinned Node to >=20. Wrote `DEPLOYMENT.md` and rewrote spec §11,
+  which had prescribed a static frontend plus separate backend — that split
+  would have 404'd every API route, since the Express server serves `dist/`
+  itself. Verified live: the port override, both new routes, and the injected
+  canonical tag. `npm run lint` and `npm run build` pass.
 
 - 2026-08-03: Removed `src/server.ts`, a stale 393-line copy of the backend
   left behind when the live server moved to the repository root. `package.json`
