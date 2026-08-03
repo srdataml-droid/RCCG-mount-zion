@@ -1,20 +1,29 @@
 # Mount Zion Website — Project Status
-*Snapshot before the big Gemini-app rework session*
+*Current as of 2026-08-03. The dated sections further down are the running
+history, newest first; this opening section describes the app as it stands
+today.*
 
 ## What this project is
 Google AI Studio (Gemini) generated a full React + TypeScript + Express app
 called `rccg-parish-portal`. It was originally built as a **multi-tenant**
-demo (multiple sample parishes). We've since locked it down to a single,
-real parish: **RCCG Mount Zion, Lower Hutt, Wellington, NZ**.
+demo (multiple sample parishes). It is now permanently locked to a single,
+real parish: **RCCG Mount Zion, Lower Hutt, Wellington, NZ**. There is no
+`parishId` on any table and no multi-parish code path left.
 
 ## Current tech stack
-- **Frontend**: React + TypeScript + Vite + Tailwind
-- **Backend**: Express (`server.ts`)
-- **AI feature**: "PastorBot" chat, powered by the Gemini API
-- **Data storage**: ⚠️ **in-memory only** — resets every time the server
-  restarts. Not yet connected to a real database.
-- **Payments**: fake/placeholder — no real processor connected yet
-- **Hosting**: not yet deployed anywhere
+- **Frontend**: React 19 + TypeScript + Vite 6 + Tailwind 4
+- **Backend**: Express (`server.ts` at the repository root, ~548 lines)
+- **AI features**: none. PastorBot and the Gemini/Ollama routes were removed
+  on 2026-07-23 and this is a permanent product decision, not a deferral.
+- **Data storage**: Supabase (Postgres), RLS enabled on every table. The
+  Express server holds the service-role key and is the only direct database
+  client. Seven migrations live in `supabase/migrations/`.
+- **Auth**: Supabase Auth on `/admin` only, accounts created manually. No
+  public sign-up anywhere on the site.
+- **Payments**: bank transfer only — a `giving_accounts` table, one account
+  per giving category. No Stripe, no card processing.
+- **Analytics**: PostHog, behind `VITE_POSTHOG_KEY` / `VITE_POSTHOG_HOST`.
+- **Hosting**: still not deployed anywhere. This is the main open item.
 
 ## What's real vs. placeholder right now
 
@@ -22,24 +31,23 @@ real parish: **RCCG Mount Zion, Lower Hutt, Wellington, NZ**.
 |---|---|
 | Parish name, address, service times | ✅ Real (Mount Zion, 550 High Street, Lower Hutt) |
 | Pastor name/title | ✅ Real (Assistant Pastor Hannah Adeniran) |
-| Pastor photo | 🔲 Placeholder stock photo — needs a real one |
-| Phone / email | 🔲 Blank — needs real contact details |
-| Live stream link | ⚠️ Facebook Page URL stored in a field built for YouTube — needs a proper fix (see below) |
-| Events | 🔲 Empty — sample Nigerian events were removed |
-| Testimonies | 🔲 Empty — sample testimonies were removed |
-| Departments | ⚠️ Still generic sample data (Choir, Ushers, Media, Prayer Band, Children's Ministry) — names/leaders are placeholders, not Mount Zion's real ones |
-| Giving/payments | 🔲 Fake — needs a real processor (Stripe recommended for NZ, not Paystack) |
-| Database | 🔲 Still in-memory — biggest open architectural gap |
+| Pastor photo | ➖ Field removed entirely on 2026-07-27 — the site no longer has one |
+| Phone | ✅ Real (+64 27 393 5187) |
+| Email | 🔲 Seeded blank — still needs a real address |
+| Live stream link | ✅ Permanent `facebook_url` page link, plus a per-broadcast `liveStreamUrl` used only while `isLiveNow` is true |
+| Events | 🔲 Empty — schema and admin CRUD ready, awaiting real events |
+| Testimonies | 🔲 Empty — moderated, max six public at a time (FIFO) |
+| Departments | ⚠️ Five DB-backed departments with no leader names. Whether these are Mount Zion's actual departments is still unconfirmed with the church |
+| Giving | ✅ Bank transfer, category-based, editable in admin. Real account details still need entering |
+| Database | ✅ Supabase, persistent, RLS on every table |
+| Admin panel | ✅ Built — `src/admin/AdminApp.tsx`, seven sections |
 
 ## Decisions made so far
-- **Location**: Lower Hutt, Wellington, New Zealand (not Nigeria — this
-  changed our payment processor choice from Paystack to **Stripe**)
-- **Scope**: single parish for now, multi-tenant code kept intact for
-  possible future reuse
-- **Budget**: $0 — sticking to free tiers throughout (Supabase, Vercel/Netlify,
-  free Gemini API quota)
-- **No Claude Code subscription** — working via copy-paste from this chat
-  instead of an agentic coding tool
+- **Location**: Lower Hutt, Wellington, New Zealand
+- **Scope**: single parish, permanently — not a phase limitation
+- **Payments**: bank transfer, deliberately not Stripe or Paystack
+- **No AI of any kind** in the product
+- **Budget**: $0 — free tiers throughout (Supabase, Vercel/Netlify)
 
 ## Two features discussed, not yet built
 1. **Facebook Page Plugin embed** — shows the church's Facebook posts/events
@@ -49,41 +57,50 @@ real parish: **RCCG Mount Zion, Lower Hutt, Wellington, NZ**.
    with link-based fallbacks.
 
 Both are architecturally "safe" additions — they don't touch the database
-or add any backend load, so they can be added independently of the bigger
-Supabase rework.
+or add any backend load.
 
-## The biggest open item: real persistent storage
-Everything currently lives in JavaScript arrays in server memory. The next
-major architectural step is wiring this to **Supabase** (free tier) so
-data actually survives a server restart. This is the one piece still
-blocking a genuinely "live" launch.
+## The biggest open item: deployment
+The app is feature-complete for a first launch and builds cleanly, but has
+never been deployed. Frontend host, Node backend host, production env vars,
+and a sitemap with the canonical URL are all still outstanding. See section
+11 of `mount-zion-product-spec-v2.md`.
 
-## Files changed so far
-- `src/data/parishData.ts` — rewritten for Mount Zion (real data + TODOs)
+## Known gaps and loose ends
+- **Migrations pending in production.** Several entries below record
+  migrations that must be run by hand in the Supabase SQL Editor before the
+  matching features work against the live database. Confirm the full set of
+  seven has been applied before launch.
+- **Orphaned admin files.** `src/admin/AdminDashboard.tsx`,
+  `src/admin/AdminLogin.tsx`, and `src/admin/supabaseClient.ts` are an
+  earlier, simpler admin implementation. Nothing imports them —
+  `src/main.tsx` mounts `AdminApp`, which is self-contained. They still
+  compile, so `tsc` does not flag them, and reading them gives a misleading
+  picture of the admin (no Giving panel, meeting requests only). They should
+  be deleted.
+- **Client bundle exceeds 500 kB**, warned on every build since PostHog was
+  added. Code splitting or a deferred analytics load is the fix.
+- **Church email is blank** in the seed data.
+- **`accentColor` is seeded `'indigo'`** while the site's visual system is
+  gold/white/charcoal. Worth checking whether the field is used at all.
 
-## Files not yet touched (still sample/generic)
-- `src/App.tsx` (876 lines)
-- `src/components/ConnectCard.tsx`
-- `src/components/GivingModal.tsx`
-- `src/components/ParishConfigurator.tsx`
-- `src/components/PastorBot.tsx`
-- `server.ts`
-
-## One thing worth deciding with the pastor before launch
-The **PastorBot** AI chat gives automated spiritual/pastoral responses.
-Worth a conscious decision on tone, boundaries, and whether serious
-situations (grief, crisis, self-harm mentions) should redirect to a real
-human rather than continue as an AI conversation.
-
-## Suggested order for the "whole lot of change" session
-1. Decide Facebook Live: link-out button (fast) vs. full embed (more work)
-2. Add Facebook Page Plugin + Share buttons (safe, isolated, quick wins)
-3. Replace generic Departments with Mount Zion's real ones
-4. Fill in phone/email/pastor photo
-5. Wire up Supabase for real persistent storage (the big one)
-6. Swap fake giving for real Stripe integration
+## Suggested order from here
+1. Confirm all seven migrations have been run in the live Supabase project
+2. Enter the real giving account details and church email via admin
+3. Confirm the real department list with the church
+4. Delete the three orphaned admin files
+5. Deploy: choose hosts, wire env vars, add the sitemap, split the bundle
 
 ## Recent changes
+
+- 2026-08-03: Removed `src/server.ts`, a stale 393-line copy of the backend
+  left behind when the live server moved to the repository root. `package.json`
+  runs and bundles only the root `server.ts`, and nothing referenced the copy.
+  Refreshed the opening section of this document, which still described the
+  pre-Supabase, PastorBot-era app, and corrected the feature matrix in
+  `mount-zion-product-spec-v2.md`, which listed the Give page and admin panel
+  as pending although both are built and database-backed. Recorded the
+  orphaned `AdminDashboard.tsx` / `AdminLogin.tsx` / `supabaseClient.ts` files
+  as a known gap. No behaviour changed; `npm run lint` passes.
 
 - Removed the unused pastor profile-photo field from the church schema, TypeScript model, admin panels, server update payload, seed data, and documentation. The new `202607270002_remove_pastor_image.sql` migration drops the existing database column. `npm run lint` and `npm run build` pass; the repository search is clean apart from the required drop statement inside that migration.
 
