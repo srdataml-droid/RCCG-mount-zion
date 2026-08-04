@@ -108,6 +108,17 @@ The single remaining path to the account numbers is the service-role key
 itself plus the admin password — which is why both belong in host
 environment variables and a password manager, never in the repository.
 
+## Accent colour
+The button gold is **`#8a6714`**, with `#6f5110` for hover. It was darkened
+from `#b8942b` on 2026-08-03 because white text on the lighter gold measured
+2.87:1, well under the 4.5:1 minimum for readable text; the darker tone gives
+5.21:1 and keeps the white lettering. Any new gold button should use
+`#8a6714`, not the older value.
+
+`#b8942b` is still correct for gold *icons* and borders, where no text
+contrast requirement applies. On dark surfaces, gold text should be
+`#f2d267` — `#8a6714` on a dark card measures only 3.36:1.
+
 ## Known gaps and loose ends
 - **Migrations pending in production.** Several entries below record
   migrations that must be run by hand in the Supabase SQL Editor before the
@@ -149,12 +160,12 @@ environment variables and a password manager, never in the repository.
   the bug: adding `bg-white` to a component silently breaks its text in dark
   mode. Scoping those overrides, or dropping them in favour of explicit
   `dark:` variants, would remove the trap.
-- **White text on the brand gold fails contrast: 2.87:1 against a 4.5:1
-  minimum.** It appears 14 times in the admin alone — every `admin-button`,
-  the active navigation pill — and on the public site's Give and Sign in
-  buttons. Keeping `#b8942b` and switching to near-black text gives 6.09:1
-  with no change to the brand colour; darkening the gold to `#8a6714` and
-  keeping white text gives 5.21:1 but visibly changes the palette. Undecided.
+- **Three of the six calendar event-chip colours still fail contrast** with
+  their white bold labels: `#b8942b` at 2.87:1, `#c58f2b` at 2.86:1, and
+  `#a37c19` at 3.85:1, against a 4.5:1 minimum. The other three pass. Fixing
+  this means rebalancing the whole six-colour palette so the categories stay
+  distinguishable, which is a design decision rather than a swap, so it was
+  left alone when the button gold was corrected.
 - **Admin screen sizes were checked down to 555px only**, Chrome's minimum
   window width. Below that is untested; phones at 375px are the real target.
 

@@ -70,7 +70,7 @@ export default function GivingModal({ isOpen, onClose, accounts }: { isOpen: boo
         <p className="mt-4 text-xs text-stone-500 dark:text-stone-400">
         </p>
 
-        <button onClick={onClose} className="mt-6 w-full rounded-lg bg-[#b8942b] px-4 py-3 text-sm font-bold text-white hover:bg-[#94721c]">Close</button>
+        <button onClick={onClose} className="mt-6 w-full rounded-lg bg-[#8a6714] px-4 py-3 text-sm font-bold text-white hover:bg-[#6f5110]">Close</button>
       </div>
     </div>
   );

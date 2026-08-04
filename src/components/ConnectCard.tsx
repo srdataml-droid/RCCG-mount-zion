@@ -33,7 +33,7 @@ export default function ConnectCard({ onSuccessSubmit }: ConnectCardProps) {
     </div>
     <label className="mt-4 block text-sm font-medium text-stone-700 dark:text-stone-200">Prayer request (optional)<textarea value={form.prayerRequest} onChange={e => setForm({ ...form, prayerRequest: e.target.value })} rows={4} className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2.5 dark:border-stone-600 dark:bg-stone-900 dark:text-white" placeholder="How can we pray for you?" /></label>
     {status === 'error' && <p className="mt-3 text-sm text-red-700">We could not send your card. Please try again shortly.</p>}
-    <button disabled={status === 'sending'} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#b8942b] px-4 py-3 text-sm font-bold text-white hover:bg-[#94721c] disabled:opacity-60">{status === 'sending' && <Loader2 size={16} className="animate-spin" />} Send my connect card</button>
+    <button disabled={status === 'sending'} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#8a6714] px-4 py-3 text-sm font-bold text-white hover:bg-[#6f5110] disabled:opacity-60">{status === 'sending' && <Loader2 size={16} className="animate-spin" />} Send my connect card</button>
   </form>;
 }
 
