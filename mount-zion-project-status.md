@@ -79,6 +79,35 @@ update their own email in the Account section and stay signed in. Moved off a
 personal address on 2026-08-03 so the account survives any future handover to
 another volunteer.
 
+## Data protection — verified 2026-08-03
+Someone changing the church's bank account number without admin access was
+tested directly and is not possible. Every table has RLS enabled and **no
+policies defined at all**, which denies the `anon` and `authenticated` roles
+everything; only the service-role key, held server-side, can read or write.
+
+Probed with the anon key that ships in the browser bundle, and again as a
+signed-in non-admin user created for the test:
+
+| Attempt | Result |
+|---|---|
+| Read giving accounts | no rows |
+| Change an account number | no rows affected |
+| Delete a giving account | no rows affected |
+| Read connect cards / meeting requests | no rows |
+| Edit church details | no rows affected |
+
+Account numbers were confirmed byte-identical afterwards. The service-role
+key was also confirmed absent from every built client asset.
+
+One caution when testing this: PostgREST returns `204 No Content` for an
+update that matched zero rows exactly as it does for a successful one, so a
+204 is not evidence of a write. Use `Prefer: return=representation` and check
+whether any rows come back.
+
+The single remaining path to the account numbers is the service-role key
+itself plus the admin password — which is why both belong in host
+environment variables and a password manager, never in the repository.
+
 ## Known gaps and loose ends
 - **Migrations pending in production.** Several entries below record
   migrations that must be run by hand in the Supabase SQL Editor before the
@@ -112,6 +141,17 @@ another volunteer.
   machine. See the URL configuration section of `DEPLOYMENT.md`.
 - **`accentColor` is seeded `'indigo'`** while the site's visual system is
   gold/white/charcoal. Worth checking whether the field is used at all.
+- **Dark mode is applied by blanket overrides, which is fragile.**
+  `index.css:27-30` recolour `text-stone-*` and `text-red-*` globally under
+  `.dark`, with no regard for what is behind them. Any element given a
+  hardcoded light background therefore receives near-white text on a light
+  surface. The known instances are fixed, but the pattern will keep producing
+  the bug: adding `bg-white` to a component silently breaks its text in dark
+  mode. Scoping those overrides, or dropping them in favour of explicit
+  `dark:` variants, would remove the trap.
+- **The admin's authenticated sections have not been checked across screen
+  sizes.** The browser tooling could not resize the window, so only the login
+  screen was inspected live; the rest was audited from the source.
 
 ## Suggested order from here
 1. Confirm all seven migrations have been run in the live Supabase project
