@@ -149,9 +149,14 @@ environment variables and a password manager, never in the repository.
   the bug: adding `bg-white` to a component silently breaks its text in dark
   mode. Scoping those overrides, or dropping them in favour of explicit
   `dark:` variants, would remove the trap.
-- **The admin's authenticated sections have not been checked across screen
-  sizes.** The browser tooling could not resize the window, so only the login
-  screen was inspected live; the rest was audited from the source.
+- **White text on the brand gold fails contrast: 2.87:1 against a 4.5:1
+  minimum.** It appears 14 times in the admin alone — every `admin-button`,
+  the active navigation pill — and on the public site's Give and Sign in
+  buttons. Keeping `#b8942b` and switching to near-black text gives 6.09:1
+  with no change to the brand colour; darkening the gold to `#8a6714` and
+  keeping white text gives 5.21:1 but visibly changes the palette. Undecided.
+- **Admin screen sizes were checked down to 555px only**, Chrome's minimum
+  window width. Below that is untested; phones at 375px are the real target.
 
 ## Suggested order from here
 1. Confirm all seven migrations have been run in the live Supabase project
