@@ -3,7 +3,12 @@ import { CalendarDays, ChevronLeft, ChevronRight, Clock, MapPin, X } from 'lucid
 import { ChurchEvent } from '../types';
 
 const DAY = 24 * 60 * 60 * 1000;
-const palette = ['bg-[#b8942b]', 'bg-[#8a6714]', 'bg-stone-600', 'bg-[#c58f2b]', 'bg-[#665742]', 'bg-[#a37c19]'];
+// Event chips carry small bold white labels, so every colour here must reach
+// 4.5:1 against white — the previous all-gold set had three colours between
+// 2.86:1 and 3.85:1. These six also stay at least 21 CIELAB units apart so
+// adjacent events remain tellable at a glance. Replacing one means checking
+// both properties again, not just picking a shade that looks right.
+const palette = ['bg-[#8a6714]', 'bg-[#6d3d12]', 'bg-[#5f5647]', 'bg-[#3d4c5e]', 'bg-[#546b34]', 'bg-[#292524]'];
 const fromDate = (value: string) => new Date(`${value}T12:00:00`);
 const offset = (date: Date, days: number) => { const copy = new Date(date); copy.setDate(copy.getDate() + days); return copy; };
 const difference = (one: Date, two: Date) => Math.round((one.getTime() - two.getTime()) / DAY);

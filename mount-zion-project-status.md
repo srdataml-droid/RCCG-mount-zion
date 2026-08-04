@@ -119,6 +119,22 @@ from `#b8942b` on 2026-08-03 because white text on the lighter gold measured
 contrast requirement applies. On dark surfaces, gold text should be
 `#f2d267` — `#8a6714` on a dark card measures only 3.36:1.
 
+The calendar's six event-chip colours were rebalanced as a set on
+2026-08-03, moving off an all-gold scheme in which three of six failed:
+
+| | ratio |
+|---|---|
+| `#8a6714` gold | 5.21:1 |
+| `#6d3d12` bronze | 9.03:1 |
+| `#5f5647` taupe | 7.22:1 |
+| `#3d4c5e` slate | 8.77:1 |
+| `#546b34` olive | 5.95:1 |
+| `#292524` near-black | 15.17:1 |
+
+They are also at least 21 CIELAB units apart, so adjacent events stay
+tellable at a glance. Both properties must be rechecked if one is changed —
+contrast alone is not enough, and neither is looking right.
+
 ## Known gaps and loose ends
 - **Migrations pending in production.** Several entries below record
   migrations that must be run by hand in the Supabase SQL Editor before the
@@ -160,12 +176,11 @@ contrast requirement applies. On dark surfaces, gold text should be
   the bug: adding `bg-white` to a component silently breaks its text in dark
   mode. Scoping those overrides, or dropping them in favour of explicit
   `dark:` variants, would remove the trap.
-- **Three of the six calendar event-chip colours still fail contrast** with
-  their white bold labels: `#b8942b` at 2.87:1, `#c58f2b` at 2.86:1, and
-  `#a37c19` at 3.85:1, against a 4.5:1 minimum. The other three pass. Fixing
-  this means rebalancing the whole six-colour palette so the categories stay
-  distinguishable, which is a design decision rather than a swap, so it was
-  left alone when the button gold was corrected.
+- **The public site's top navigation is unreadable in dark mode.**
+  `.nav-link` and `.mobile-link` in `index.css` set `color: #44403c` with no
+  dark variant, so Home / About / Connect / Events render at **1.93:1**
+  against the dark header — effectively invisible. This is pre-existing and
+  affects the main navigation of the public site. Not yet fixed.
 - **Admin screen sizes were checked down to 555px only**, Chrome's minimum
   window width. Below that is untested; phones at 375px are the real target.
 
