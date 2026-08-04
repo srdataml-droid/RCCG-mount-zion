@@ -112,9 +112,19 @@ function AccountPanel({ session }: { session: Session }) {
   async function changeEmail(event: FormEvent) {
     event.preventDefault();
     setSavingEmail(true); setEmailStatus('');
-    const { error } = await authClient!.auth.updateUser({ email: email.trim() });
+    // Without an explicit redirect, Supabase builds the confirmation link from
+    // the project's Site URL, which defaults to localhost — so a link mailed
+    // from the deployed site sends the administrator to a page on their own
+    // machine. Sending the live origin keeps the link on whichever host the
+    // change was requested from. The origin must also be listed under
+    // Authentication → URL Configuration → Redirect URLs, or Supabase falls
+    // back to the Site URL again.
+    const { error } = await authClient!.auth.updateUser(
+      { email: email.trim() },
+      { emailRedirectTo: `${window.location.origin}/admin` },
+    );
     setSavingEmail(false);
-    setEmailStatus(error ? `Email change failed — ${error.message}` : 'Confirmation link sent. Open it from the new email address to complete the change.');
+    setEmailStatus(error ? `Email change failed — ${error.message}` : 'Confirmation link sent. Supabase may email both the old and the new address — open the link in each to complete the change.');
   }
 
   async function changePassword(event: FormEvent) {

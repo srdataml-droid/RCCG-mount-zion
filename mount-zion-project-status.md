@@ -96,16 +96,20 @@ another volunteer.
   `package.json` to shrink installs.
 - **`.env` still holds `OLLAMA_API_KEY`**, left over from the removed
   PastorBot. Harmless but dead — worth deleting from the local file.
-- **A second Supabase Auth user still exists** (`srdataml@gmail.com`). It gets
-  403 on every admin route so it grants nothing, but an account that can
-  authenticate and is not needed is worth deleting.
+- **The public phone number is Nigerian**, not New Zealand:
+  `church_info.phone` is `07061313517`, an 0706 mobile prefix, where the seed
+  migration had `+64 27 393 5187`. A Lower Hutt congregation is publishing a
+  number local visitors cannot dial. Needs correcting in admin → Church
+  details.
 - **The admin address may carry a typo** — `rccgmountzionwellton` rather than
-  `wellington`. It is a real, confirmed mailbox, so it works; if the church
-  registers a correctly spelled address the email can be changed again with
-  no code or configuration impact.
-- **The admin password predates this account move** and should be rotated to
-  a passphrase via the Account section.
-- **Church email is blank** in the seed data.
+  `wellington`. The church's own Facebook URL spells it `wellington`, which
+  suggests the shorter form was unintended. The mailbox is real and confirmed
+  so nothing is broken; if a correctly spelled address is registered, the
+  admin email can be changed again with no code or configuration impact.
+- **Supabase Site URL must be set before launch.** It defaults to
+  `http://localhost:3000`, and every emailed link is built from it, so
+  confirmation mails from the deployed site point at the administrator's own
+  machine. See the URL configuration section of `DEPLOYMENT.md`.
 - **`accentColor` is seeded `'indigo'`** while the site's visual system is
   gold/white/charcoal. Worth checking whether the field is used at all.
 

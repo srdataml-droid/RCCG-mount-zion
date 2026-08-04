@@ -93,6 +93,34 @@ Render only assigns the URL when the service is created, so:
 When a real domain is bought later, point it at the service, update
 `SITE_URL`, and redeploy. No code changes.
 
+## Supabase URL configuration — the localhost link trap
+
+By default a Supabase project's **Site URL** is `http://localhost:3000`, and
+every link Supabase emails is built from it. Left alone, an administrator on
+the deployed site requests an email change, receives the confirmation mail,
+clicks it, and is sent to a page on their own machine that isn't running —
+the change never completes and nothing explains why.
+
+The application now passes an explicit `emailRedirectTo` of
+`<current origin>/admin`, but Supabase only honours a redirect that is on the
+allow-list. Both halves are required. In the Supabase dashboard, under
+**Authentication → URL Configuration**:
+
+| Field | Value |
+|---|---|
+| Site URL | The deployed address, e.g. `https://rccg-mount-zion.onrender.com` |
+| Redirect URLs | `https://rccg-mount-zion.onrender.com/admin` — add `http://localhost:3000/admin` as a second entry if email flows are tested locally |
+
+This is dashboard-only configuration; the service role key cannot change it,
+so it will not travel with the code and must be done once per project — and
+again if the site moves to a real domain.
+
+Also worth knowing: **Authentication → Providers → Email** has a *Secure email
+change* setting, on by default, which sends a confirmation link to both the
+old and the new address. Both must be clicked. If the old mailbox is no longer
+reachable, either turn that off first or change the address with the admin
+API instead, which applies it directly with no email at all.
+
 ## After deploying
 
 Check each of these against the live URL:
@@ -107,6 +135,8 @@ Check each of these against the live URL:
 - Once signed in, each of the seven sections loads without an error banner
 - Submit one Connect Card from the public site and confirm it appears under
   Requests
+- Request an email change and confirm the link in the message points at the
+  deployed site rather than localhost
 
 Then enter the real content through the admin panel: the giving account
 details for each category, the church email address, and the actual events.
