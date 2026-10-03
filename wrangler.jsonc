@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "rccg-mount-zion",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-03",
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/admin*", "/robots.txt", "/sitemap.xml"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "rccg-mount-zion-db",
+      "database_id": "da530757-6629-4756-a1e7-717c422390f2",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "rccg-mount-zion-admin-4317.cloudflareaccess.com",
+    "ACCESS_AUD": "f764468eee4c478e8e0bd94bf587df3c7bad56eec797b8dfab420c3ed79649a4",
+    "ADMIN_EMAILS": "samuelirenikase@gmail.com",
+    "PUBLIC_SITE_URL": "https://rccg-mount-zion.samuelirenikase.workers.dev"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1,
+    "logs": { "enabled": true, "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.1 }
+  }
+}

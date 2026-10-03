@@ -1,20 +1,17 @@
 import tailwindcss from '@tailwindcss/vite';
+import { cloudflare } from '@cloudflare/vite-plugin';
 import react from '@vitejs/plugin-react';
-import dotenv from 'dotenv';
 import path from 'path';
-import {defineConfig, Plugin} from 'vite';
-
-dotenv.config();
+import {defineConfig, loadEnv, Plugin} from 'vite';
 
 // Adds the canonical and og:url tags from SITE_URL. Both need an absolute
 // address, so they can only be written once the site has a real home. When
 // SITE_URL is unset the tags are left out entirely — a missing canonical is
 // harmless, a wrong one actively misleads search engines.
-function siteUrlTags(): Plugin {
+function siteUrlTags(siteUrl: string): Plugin {
   return {
     name: 'mount-zion-site-url-tags',
     transformIndexHtml(html) {
-      const siteUrl = process.env.SITE_URL?.trim().replace(/\/$/, '');
       if (!siteUrl) return html;
       return html.replace(
         '</head>',
@@ -26,9 +23,11 @@ function siteUrlTags(): Plugin {
   };
 }
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const siteUrl = env.PUBLIC_SITE_URL?.trim().replace(/\/$/, '') || 'https://rccg-mount-zion.samuelirenikase.workers.dev';
   return {
-    plugins: [react(), tailwindcss(), siteUrlTags()],
+    plugins: [react(), tailwindcss(), cloudflare(), siteUrlTags(siteUrl)],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
