@@ -32,3 +32,8 @@ body { margin: 0; }
 .calendar-nav:hover { background: #fff7dd; color: #8a6714; }
 .dark .calendar-nav { border-color: #57534e; color: #e7e5e4; }
 .dark .calendar-nav:hover { background: #292524; color: #f2d267; }
+
+section[id] { scroll-margin-top: 5.25rem; }
+.nav-link:focus-visible, .mobile-link:focus-visible { outline: 2px solid #8a6714; outline-offset: 2px; }
+.dark .nav-link, .dark .mobile-link { color: #e7e5e4; }
+.dark .nav-link:hover, .dark .mobile-link:hover { color: #f2d267; }
