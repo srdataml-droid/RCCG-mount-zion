@@ -1,23 +1,19 @@
 import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { createClient, Session, SupabaseClient } from '@supabase/supabase-js';
-import { Calendar, Check, Church, ClipboardList, KeyRound, Loader2, LogOut, Plus, Trash2, Users } from 'lucide-react';
+import { Calendar, Check, Church, ClipboardList, Loader2, LogOut, Plus, Trash2, Users } from 'lucide-react';
 import { ChurchEvent, ChurchInfo, ConnectCardSubmission, Department, GivingAccount, GivingCategory, MeetingRequest, Testimony } from '../types';
 import { ThemeToggle, useTheme } from '../components/ThemeToggle';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const authClient: SupabaseClient | null = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
-
-type AdminSection = 'events' | 'departments' | 'testimonies' | 'meetings' | 'church' | 'giving' | 'account';
+type AdminSection = 'events' | 'departments' | 'testimonies' | 'meetings' | 'church' | 'giving';
+type AdminSession = { user: { email: string; id: string } };
 type EventDraft = Omit<ChurchEvent, 'id'>;
 type DepartmentDraft = Omit<Department, 'id'>;
 const emptyEvent: EventDraft = { title: '', description: '', date: '', endDate: null, time: '', location: '', category: 'Special', bannerUrl: '' };
 const emptyDepartment: DepartmentDraft = { name: '', description: '', howToJoin: '' };
 
-async function adminRequest<T>(session: Session, path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(path, { ...options, headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json', ...options.headers } });
+async function adminRequest<T>(_session: AdminSession, path: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(path, { ...options, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', ...options.headers } });
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
+    const body = await response.json().catch(() => ({})) as { error?: string };
     throw new Error(body.error || 'Request failed');
   }
   return response.status === 204 ? undefined as T : response.json();
@@ -25,28 +21,24 @@ async function adminRequest<T>(session: Session, path: string, options: RequestI
 
 export default function AdminApp() {
   const { theme, setTheme } = useTheme();
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<AdminSession | null>(null);
+  const [checkingAccess, setCheckingAccess] = useState(true);
   const [section, setSection] = useState<AdminSection>('events');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!authClient) return;
-    void authClient.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = authClient.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
-    return () => listener.subscription.unsubscribe();
+    void fetch('/api/admin/session', { credentials: 'same-origin' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('This account is not authorized to manage the church site.');
+        setSession(await response.json() as AdminSession);
+      })
+      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : 'Cloudflare Access sign-in is required.'))
+      .finally(() => setCheckingAccess(false));
   }, []);
 
-  if (!authClient) return <ConfigurationRequired />;
-  if (!session) return <Login onError={setError} />;
-  return <div className="min-h-screen bg-[#fffdf8] text-stone-900 dark:bg-stone-950 dark:text-stone-100"><header className="border-b border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-900"><div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6"><a href="/" className="font-serif text-xl font-bold">RCCG <span className="text-[#a37c19]">Mount Zion</span><span className="ml-2 text-sm font-normal text-stone-500 dark:text-stone-400">Admin</span></a><div className="flex items-center gap-3 text-sm"><span className="hidden text-stone-600 dark:text-stone-300 sm:inline">{session.user.email}</span><ThemeToggle theme={theme} setTheme={setTheme} /><button onClick={() => void authClient.auth.signOut()} className="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-2 hover:bg-stone-50 dark:border-stone-600 dark:hover:bg-stone-800"><LogOut size={15} /> Sign out</button></div></div></header><main className="mx-auto max-w-7xl px-4 py-8 sm:px-6"><p className="eyebrow">Church administration</p><h1 className="font-serif text-4xl">Manage Mount Zion</h1><div className="mt-7 grid gap-6 lg:grid-cols-[220px_1fr]"><nav className="flex gap-2 overflow-x-auto lg:block lg:space-y-2">{([{ key: 'events', label: 'Events', icon: Calendar }, { key: 'departments', label: 'Departments', icon: Users }, { key: 'testimonies', label: 'Testimonies', icon: Check }, { key: 'meetings', label: 'Requests', icon: ClipboardList }, { key: 'giving', label: 'Giving accounts', icon: Plus }, { key: 'church', label: 'Church details', icon: Church }, { key: 'account', label: 'Account', icon: KeyRound }] as const).map(item => <button key={item.key} onClick={() => { setSection(item.key); setError(''); }} className={`inline-flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-semibold ${section === item.key ? 'bg-stone-900 text-white dark:bg-[#8a6714]' : 'bg-white hover:bg-[#fff7dd] dark:bg-stone-800 dark:hover:bg-stone-700'}`}><item.icon size={16} />{item.label}</button>)}</nav><section className="min-w-0">{error && <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950/40">{error}</p>}{section === 'events' && <EventsPanel session={session} onError={setError} />}{section === 'departments' && <DepartmentsPanel session={session} onError={setError} />}{section === 'testimonies' && <TestimoniesPanel session={session} onError={setError} />}{section === 'meetings' && <RequestsPanel session={session} onError={setError} />}{section === 'giving' && <GivingAccountsPanel session={session} onError={setError} />}{section === 'church' && <ChurchPanel session={session} onError={setError} />}{section === 'account' && <AccountPanel session={session} />}</section></div></main></div>;
-}
-
-function ConfigurationRequired() { return <main className="grid min-h-screen place-items-center bg-stone-950 p-6 text-center text-white"><div className="max-w-lg"><h1 className="font-serif text-3xl">Admin setup required</h1><p className="mt-3 text-stone-300">Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to the deployment environment before using the admin login.</p><a href="/" className="mt-6 inline-block rounded-lg bg-[#d4af37] px-4 py-2 font-bold text-stone-950">Return to website</a></div></main>; }
-
-function Login({ onError }: { onError: (message: string) => void }) {
-  const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [loading, setLoading] = useState(false);
-  async function submit(event: FormEvent) { event.preventDefault(); setLoading(true); onError(''); const { error } = await authClient!.auth.signInWithPassword({ email, password }); setLoading(false); if (error) onError('We could not sign you in. Check your email and password.'); }
-  return <main className="grid min-h-screen place-items-center bg-stone-950 p-4"><form onSubmit={submit} className="w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl dark:bg-stone-900 dark:text-stone-100"><p className="eyebrow">Restricted area</p><h1 className="mt-2 font-serif text-3xl">Mount Zion admin</h1><p className="mt-2 text-sm text-stone-600">Use an account created by the church administrator. There is no public sign-up.</p><label className="mt-6 block text-sm font-medium">Email<input required type="email" value={email} onChange={event => setEmail(event.target.value)} className="form-input mt-1" /></label><label className="mt-4 block text-sm font-medium">Password<input required type="password" value={password} onChange={event => setPassword(event.target.value)} className="form-input mt-1" /></label><button disabled={loading} className="mt-6 inline-flex w-full justify-center gap-2 rounded-lg bg-[#8a6714] px-4 py-3 font-bold text-white disabled:opacity-60">{loading && <Loader2 className="animate-spin" size={18} />} Sign in</button><a href="/" className="mt-4 block text-center text-sm font-semibold text-[#8a6714] dark:text-[#f2d267]">Return to public website</a></form></main>;
+  if (checkingAccess) return <main className="grid min-h-screen place-items-center bg-stone-950 p-6 text-white"><p>Checking admin access…</p></main>;
+  if (!session) return <main className="grid min-h-screen place-items-center bg-stone-950 p-6 text-center text-white"><div><h1 className="font-serif text-3xl">Admin access required</h1><p className="mt-3 max-w-md text-stone-300">{error || 'Sign in with the church administrator account through Cloudflare Access.'}</p><a href="/" className="mt-6 inline-block rounded-lg bg-[#d4af37] px-4 py-2 font-bold text-stone-950">Return to website</a></div></main>;
+  return <div className="min-h-screen bg-[#fffdf8] text-stone-900 dark:bg-stone-950 dark:text-stone-100"><header className="border-b border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-900"><div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6"><a href="/" className="font-serif text-xl font-bold">RCCG <span className="text-[#a37c19]">Mount Zion</span><span className="ml-2 text-sm font-normal text-stone-500 dark:text-stone-400">Admin</span></a><div className="flex items-center gap-3 text-sm"><span className="hidden text-stone-600 dark:text-stone-300 sm:inline">{session.user.email}</span><ThemeToggle theme={theme} setTheme={setTheme} /><button onClick={() => { window.location.href = '/cdn-cgi/access/logout?returnTo=' + encodeURIComponent(window.location.origin + '/'); }} className="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-2 hover:bg-stone-50 dark:border-stone-600 dark:hover:bg-stone-800"><LogOut size={15} /> Sign out</button></div></div></header><main className="mx-auto max-w-7xl px-4 py-8 sm:px-6"><p className="eyebrow">Church administration</p><h1 className="font-serif text-4xl">Manage Mount Zion</h1><div className="mt-7 grid gap-6 lg:grid-cols-[220px_1fr]"><nav className="flex gap-2 overflow-x-auto lg:block lg:space-y-2">{([{ key: 'events', label: 'Events', icon: Calendar }, { key: 'departments', label: 'Departments', icon: Users }, { key: 'testimonies', label: 'Testimonies', icon: Check }, { key: 'meetings', label: 'Requests', icon: ClipboardList }, { key: 'giving', label: 'Giving accounts', icon: Plus }, { key: 'church', label: 'Church details', icon: Church }] as const).map(item => <button key={item.key} onClick={() => { setSection(item.key); setError(''); }} className={`inline-flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-semibold ${section === item.key ? 'bg-stone-900 text-white dark:bg-[#8a6714]' : 'bg-white hover:bg-[#fff7dd] dark:bg-stone-800 dark:hover:bg-stone-700'}`}><item.icon size={16} />{item.label}</button>)}</nav><section className="min-w-0">{error && <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950/40">{error}</p>}{section === 'events' && <EventsPanel session={session} onError={setError} />}{section === 'departments' && <DepartmentsPanel session={session} onError={setError} />}{section === 'testimonies' && <TestimoniesPanel session={session} onError={setError} />}{section === 'meetings' && <RequestsPanel session={session} onError={setError} />}{section === 'giving' && <GivingAccountsPanel session={session} onError={setError} />}{section === 'church' && <ChurchPanel session={session} onError={setError} />}</section></div></main></div>;
 }
 
 function EventsPanel({ session, onError }: PanelProps) {
@@ -101,45 +93,6 @@ function RequestDetailDialog({ kind, item, onClose }: { kind: RequestKind; item:
 const givingCategories: GivingCategory[] = ['Tithe', 'Offering', 'Thanksgiving', 'Building Fund', 'Missions', 'Other'];
 const emptyGivingAccount: Omit<GivingAccount, 'id'> = { category: 'Tithe', bankName: '', accountName: '', accountNumber: '' };
 
-function AccountPanel({ session }: { session: Session }) {
-  const [email, setEmail] = useState(session.user.email || '');
-  const [password, setPassword] = useState('');
-  const [emailStatus, setEmailStatus] = useState('');
-  const [passwordStatus, setPasswordStatus] = useState('');
-  const [savingEmail, setSavingEmail] = useState(false);
-  const [savingPassword, setSavingPassword] = useState(false);
-
-  async function changeEmail(event: FormEvent) {
-    event.preventDefault();
-    setSavingEmail(true); setEmailStatus('');
-    // Without an explicit redirect, Supabase builds the confirmation link from
-    // the project's Site URL, which defaults to localhost — so a link mailed
-    // from the deployed site sends the administrator to a page on their own
-    // machine. Sending the live origin keeps the link on whichever host the
-    // change was requested from. The origin must also be listed under
-    // Authentication → URL Configuration → Redirect URLs, or Supabase falls
-    // back to the Site URL again.
-    const { error } = await authClient!.auth.updateUser(
-      { email: email.trim() },
-      { emailRedirectTo: `${window.location.origin}/admin` },
-    );
-    setSavingEmail(false);
-    setEmailStatus(error ? `Email change failed — ${error.message}` : 'Confirmation link sent. Supabase may email both the old and the new address — open the link in each to complete the change.');
-  }
-
-  async function changePassword(event: FormEvent) {
-    event.preventDefault();
-    if (password.length < 6) { setPasswordStatus('Password must be at least 6 characters.'); return; }
-    setSavingPassword(true); setPasswordStatus('');
-    const { error } = await authClient!.auth.updateUser({ password });
-    setSavingPassword(false);
-    if (error) { setPasswordStatus(`Password change failed — ${error.message}`); return; }
-    setPassword(''); setPasswordStatus('Password updated successfully.');
-  }
-
-  return <div><PanelTitle title="Account" description="Update the shared administrator email address or password." /><div className="grid gap-5 lg:grid-cols-2"><form onSubmit={changeEmail} className="admin-card"><h3 className="font-serif text-2xl">Change email</h3><p className="mt-1 text-sm text-stone-600 dark:text-stone-300">Supabase will send a confirmation link to the new address.</p><label className="mt-5 block text-sm font-medium">New email<input required type="email" value={email} onChange={event => setEmail(event.target.value)} className="form-input mt-1" /></label><button disabled={savingEmail} className="admin-button mt-4 disabled:opacity-60">{savingEmail ? 'Sending…' : 'Send confirmation link'}</button>{emailStatus && <p className={`mt-3 text-sm font-semibold ${emailStatus.includes('failed') ? 'text-red-700 dark:text-red-300' : 'text-emerald-700 dark:text-emerald-300'}`}>{emailStatus}</p>}</form><form onSubmit={changePassword} className="admin-card"><h3 className="font-serif text-2xl">Change password</h3><p className="mt-1 text-sm text-stone-600 dark:text-stone-300">Use at least 6 characters.</p><label className="mt-5 block text-sm font-medium">New password<input required minLength={6} type="password" value={password} onChange={event => setPassword(event.target.value)} className="form-input mt-1" /></label><button disabled={savingPassword} className="admin-button mt-4 disabled:opacity-60">{savingPassword ? 'Updating…' : 'Update password'}</button>{passwordStatus && <p className={`mt-3 text-sm font-semibold ${passwordStatus.includes('failed') || passwordStatus.includes('must be') ? 'text-red-700 dark:text-red-300' : 'text-emerald-700 dark:text-emerald-300'}`}>{passwordStatus}</p>}</form></div></div>;
-}
-
 function GivingAccountsPanel({ session, onError }: PanelProps) {
   const [accounts, setAccounts] = useState<GivingAccount[]>([]); const [draft, setDraft] = useState<Omit<GivingAccount, 'id'>>(emptyGivingAccount); const [editing, setEditing] = useState<string | null>(null); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false);
   const load = async () => { try { setLoading(true); setAccounts(await adminRequest<GivingAccount[]>(session, '/api/admin/giving-accounts')); } catch (error) { onError(message(error)); } finally { setLoading(false); } };
@@ -163,7 +116,7 @@ function ChurchPanel({ session, onError }: PanelProps) {
   return <div><PanelTitle title="Church details" description="Changes appear on the public site after saving." /><div className={`mb-5 rounded-xl border p-5 ${church.isLiveNow ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30' : 'border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-900'}`}><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-serif text-xl">Service live status</p><p className="mt-1 text-sm text-stone-600 dark:text-stone-300"><span className={`mr-2 inline-block h-2.5 w-2.5 rounded-full ${church.isLiveNow ? 'bg-emerald-500' : 'bg-stone-400'}`} />{church.isLiveNow ? 'Visitors can see that the service is live.' : 'Visitors currently see the service as offline.'}</p></div><button type="button" disabled={savingLiveStatus} onClick={() => void toggleLiveStatus()} className={church.isLiveNow ? 'rounded-lg bg-red-700 px-5 py-3 font-bold text-white hover:bg-red-800 disabled:opacity-60' : 'rounded-lg bg-emerald-700 px-5 py-3 font-bold text-white hover:bg-emerald-800 disabled:opacity-60'}>{savingLiveStatus ? 'Updating…' : church.isLiveNow ? 'End Live' : 'Go Live'}</button></div><label className="mt-4 block text-sm font-medium">Live video URL <span className="font-normal text-stone-600 dark:text-stone-300">(paste Facebook’s share link before going live)</span><input type="url" value={church.liveStreamUrl || ''} onChange={event => { setChurch({ ...church, liveStreamUrl: event.target.value || null }); setSaveStatus(''); }} placeholder="https://www.facebook.com/..." className="form-input mt-1" /></label></div><form onSubmit={submit} className="admin-card grid gap-3 md:grid-cols-2">{fields.map(field => <Text key={field} label={label(field)} value={String(church[field])} onChange={value => { setChurch({ ...church, [field]: value }); setSaveStatus(''); }} wide={field === 'tagline'} />)}<Text label="Service times (JSON)" value={serviceTimes} onChange={value => { setServiceTimes(value); setSaveStatus(''); }} area wide /><div className="md:col-span-2"><button className="admin-button">Save church details</button>{saveStatus && <p className={`mt-2 text-sm font-semibold ${saveStatus.startsWith('Save failed') ? 'text-red-700 dark:text-red-300' : 'text-emerald-700 dark:text-emerald-300'}`}>{saveStatus}</p>}</div></form></div>;
 }
 
-type PanelProps = { session: Session; onError: (message: string) => void };
+type PanelProps = { session: AdminSession; onError: (message: string) => void };
 function PanelTitle({ title, description }: { title: string; description: string }) { return <div className="mb-5"><h2 className="font-serif text-3xl">{title}</h2><p className="mt-1 text-sm text-stone-600">{description}</p></div>; }
 function Text({ label, value, onChange, type = 'text', area = false, wide = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; area?: boolean; wide?: boolean }) { return <label className={`text-sm font-medium ${wide ? 'md:col-span-2' : ''}`}>{label}{area ? <textarea required value={value} onChange={event => onChange(event.target.value)} rows={4} className="form-input mt-1" /> : <input required type={type} value={value} onChange={event => onChange(event.target.value)} className="form-input mt-1" />}</label>; }
 function RecordList({ loading, empty, children }: { loading: boolean; empty: string; children: ReactNode }) { const list = useMemo(() => children, [children]); return <div className="mt-6 space-y-3">{loading ? <Loading /> : (Array.isArray(list) && list.length === 0 ? <p className="rounded-lg bg-white p-4 text-sm text-stone-600 dark:bg-stone-800">{empty}</p> : list)}</div>; }

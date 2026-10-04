@@ -15,7 +15,17 @@
 
 html { scroll-behavior: smooth; }
 body { margin: 0; }
-.hero-image { background-image: url('https://images.unsplash.com/photo-1507692049790-de58290a4334?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGNodXJjaHxlbnwwfHwwfHx8MA%3D%3D'); background-position: center; background-size: cover; }
+.hero-image { background: radial-gradient(ellipse at 4% 12%, rgba(212, 175, 55, .14), transparent 38%), #fbf8f0; }
+.dark .hero-image { background: radial-gradient(ellipse at 4% 12%, rgba(212, 175, 55, .12), transparent 38%), #1c1917; }
+.hero-photo { isolation: isolate; background: #292524; }
+.hero-photo::before, .hero-photo::after { position: absolute; inset: 0; content: ""; }
+.hero-photo::before { z-index: -2; background-image: url('https://images.unsplash.com/photo-1507692049790-de58290a4334?w=1600&auto=format&fit=crop&q=85'); background-position: center 48%; background-size: cover; filter: saturate(.9) brightness(.96); transform: scale(1.015); }
+.hero-photo::after { z-index: -1; background: linear-gradient(90deg, rgba(92, 67, 25, .18), transparent 52%), linear-gradient(180deg, transparent 54%, rgba(18, 17, 15, .62)); box-shadow: inset 0 0 0 1px rgba(242, 210, 103, .2); }
+.hero-photo-caption { border: 1px solid rgba(242, 210, 103, .45); background: rgba(29, 27, 23, .6); box-shadow: 0 12px 36px rgba(0, 0, 0, .2); backdrop-filter: blur(12px); }
+@media (min-width: 1024px) {
+  .hero-photo { clip-path: polygon(10% 0, 100% 0, 100% 100%, 0 100%); }
+  .hero-photo::before { background-position: center 44%; }
+}
 .nav-link { border-radius: .5rem; padding: .55rem .7rem; font-size: .875rem; font-weight: 600; color: #44403c; }
 .nav-link:hover { background: #fff7dd; color: #8a6714; }
 .mobile-link { display: block; padding: .55rem .2rem; font-size: .875rem; font-weight: 600; color: #44403c; }
@@ -32,3 +42,8 @@ body { margin: 0; }
 .calendar-nav:hover { background: #fff7dd; color: #8a6714; }
 .dark .calendar-nav { border-color: #57534e; color: #e7e5e4; }
 .dark .calendar-nav:hover { background: #292524; color: #f2d267; }
+
+section[id] { scroll-margin-top: 5.25rem; }
+.nav-link:focus-visible, .mobile-link:focus-visible { outline: 2px solid #8a6714; outline-offset: 2px; }
+.dark .nav-link, .dark .mobile-link { color: #e7e5e4; }
+.dark .nav-link:hover, .dark .mobile-link:hover { color: #f2d267; }
