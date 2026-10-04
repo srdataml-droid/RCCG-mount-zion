@@ -86,11 +86,11 @@ INSERT OR IGNORE INTO church_info (
   id, name, tagline, pastorName, pastorTitle, address, city, state, phone, email,
   facebook_url, liveStreamEmbedId, liveStreamUrl, serviceTimes, accentColor, logoText, isLiveNow
 ) VALUES (
-  'parish-1', 'RCCG Mount Zion', 'A House of Faith in the Heart of Wellington',
+  'parish-1', 'RCCG Mount Zion Wellington', 'A House of Faith in the Heart of Wellington',
   'Hannah Adeniran', 'Assistant Pastor', '550 High Street', 'Lower Hutt', 'Wellington 5018',
-  '07061313517', 'samuelirenikase@gmail.com', 'https://www.facebook.com/rccgmountzionwellington',
+  '06-07730881', 'rccgmountzionwellington@gmail.com', 'https://www.facebook.com/rccgmountzionwellington3757',
   '', NULL,
-  '[{"day":"Sunday","time":"10:00 AM","name":"Sunday Service"},{"day":"Tuesday","time":"06:00 PM","name":"Digging Deep"},{"day":"Thursday","time":"06:00 PM","name":"Faith Clinic"}]',
+  '[{"day":"Sunday","time":"10:00 AM - 12:00 PM","name":"Sunday Service"},{"day":"Tuesday","time":"06:00 PM - 07:00 PM","name":"Digging Deep"},{"day":"Thursday","time":"06:00 PM - 07:00 PM","name":"Faith Clinic"}]',
   'indigo', 'Mount Zion', 0
 );
 

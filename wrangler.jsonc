@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "rccg-mount-zion",
+  "account_id": "865503c0cbf8a05198f64284d0bc6429",
   "main": "src/worker.ts",
   "compatibility_date": "2026-10-03",
   "assets": {
@@ -12,15 +13,15 @@
     {
       "binding": "DB",
       "database_name": "rccg-mount-zion-db",
-      "database_id": "da530757-6629-4756-a1e7-717c422390f2",
+      "database_id": "ba57cfdf-2f95-4b6c-98c3-ea0997d973f2",
       "migrations_dir": "migrations"
     }
   ],
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "rccg-mount-zion-admin-4317.cloudflareaccess.com",
-    "ACCESS_AUD": "f764468eee4c478e8e0bd94bf587df3c7bad56eec797b8dfab420c3ed79649a4",
-    "ADMIN_EMAILS": "samuelirenikase@gmail.com",
-    "PUBLIC_SITE_URL": "https://rccg-mount-zion.samuelirenikase.workers.dev"
+    "ACCESS_TEAM_DOMAIN": "rccg-mount-zion-admin-03.cloudflareaccess.com",
+    "ACCESS_AUD": "7816f7510dac1100536cb715fe02c386ccc276691ac3a5e9ce0bad6823198b4a",
+    "ADMIN_EMAILS": "rccgmountzion03@gmail.com",
+    "PUBLIC_SITE_URL": "https://rccg-mount-zion.rccgmountzion03.workers.dev"
   },
   "observability": {
     "enabled": true,

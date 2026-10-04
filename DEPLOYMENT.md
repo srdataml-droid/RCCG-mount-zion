@@ -2,10 +2,10 @@
 
 ## Current setup
 
-- Public site: https://rccg-mount-zion.samuelirenikase.workers.dev
+- Public site: https://rccg-mount-zion.rccgmountzion03.workers.dev
 - Hosting and API: Cloudflare Worker `rccg-mount-zion` with static assets.
 - Database: Cloudflare D1 `rccg-mount-zion-db`, created in the Oceania region.
-- Admin: Cloudflare Access protects `/admin*` and `/api/admin*`, currently allowing `samuelirenikase@gmail.com`. The Worker also verifies Access JWTs and checks the email allow list.
+- Admin: Cloudflare Access protects `/admin*` and `/api/admin*`, allowing `rccgmountzion03@gmail.com`. The Worker also verifies Access JWTs and checks the email allow list.
 - Render and the former Supabase database were left untouched. Render can remain a fallback until the church confirms this Cloudflare version is ready to replace it.
 
 ## Deploy and database changes

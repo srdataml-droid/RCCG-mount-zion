@@ -25,7 +25,7 @@ function siteUrlTags(siteUrl: string): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const siteUrl = env.PUBLIC_SITE_URL?.trim().replace(/\/$/, '') || 'https://rccg-mount-zion.samuelirenikase.workers.dev';
+  const siteUrl = env.PUBLIC_SITE_URL?.trim().replace(/\/$/, '') || 'https://rccg-mount-zion.rccgmountzion03.workers.dev';
   return {
     plugins: [react(), tailwindcss(), cloudflare(), siteUrlTags(siteUrl)],
     resolve: {

@@ -13,8 +13,8 @@ The Vite Cloudflare plugin runs the Worker and local D1 during development. Appl
 
 ## Production
 
-The live Worker is `https://rccg-mount-zion.samuelirenikase.workers.dev`. D1 migrations are in `migrations/`. Deploy with `npm run deploy`; this builds the static site and publishes the Worker. Apply later migrations using `npm run db:remote`.
+The live Worker is `https://rccg-mount-zion.rccgmountzion03.workers.dev`. D1 migrations are in `migrations/`. Deploy with `npm run deploy`; this builds the static site and publishes the Worker. Apply later migrations using `npm run db:remote`.
 
-Cloudflare Access protects `/admin*` and `/api/admin*`. The Access allow policy currently admits `samuelirenikase@gmail.com`; the Worker separately verifies the signed Access JWT and email allow list. Keep the Access team domain, audience, and admin allow list in `wrangler.jsonc` aligned with the Access application in Cloudflare.
+Cloudflare Access protects `/admin*` and `/api/admin*`. The Access allow policy currently admits `rccgmountzion03@gmail.com`; the Worker separately verifies the signed Access JWT and email allow list. Keep the Access team domain, audience, and admin allow list in `wrangler.jsonc` aligned with the Access application in Cloudflare.
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for the infrastructure and content notes.
